@@ -21,7 +21,7 @@ def test_extrai_exatamente_113_artigos():
     html = RAW_FILE.read_text(encoding="utf-8")
     
     # O parser não deve falhar nem devolver 0 artigos
-    registos = parse_html(html, "32024R1689", "https://eur-lex.europa.eu/", "hash_teste")
+    registos = parse_html(html, "32024R1689", "https://eur-lex.europa.eu/", "a" * 64)
     
     artigos = [r for r in registos if r.tipo is TipoUnidade.ARTIGO]
     

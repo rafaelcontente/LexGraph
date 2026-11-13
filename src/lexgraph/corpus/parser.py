@@ -116,8 +116,17 @@ def parse_html(html: str, celex: str, url: str, fonte_hash: str) -> list[Registo
                 ))
             continue
 
-    n_artigos = sum(1 for r in registos if r.tipo is TipoUnidade.ARTIGO)
+    # Deduplicar por unidade_id, mantendo o registo com o texto mais longo
+    # Isto resolve o caso de o HTML ter "Artigo X" em múltiplas tags (ex: título e parágrafo)
+    unicos = {}
+    for r in registos:
+        if r.unidade_id not in unicos or len(r.texto) > len(unicos[r.unidade_id].texto):
+            unicos[r.unidade_id] = r
+    
+    registos_finais = sorted(unicos.values(), key=lambda x: x.ordem)
+
+    n_artigos = sum(1 for r in registos_finais if r.tipo is TipoUnidade.ARTIGO)
     if n_artigos == 0:
         raise ValueError(f"Parser falhou: 0 artigos encontrados em {celex}.")
 
-    return registos
+    return registos_finais

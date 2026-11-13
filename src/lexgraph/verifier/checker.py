@@ -33,9 +33,10 @@ def _e_abstencao(resposta: str) -> bool:
     if len(r.strip()) < 15:
         return True
     indicadores = [
-        "nao sei", "nao tenho informacao", "nao consigo encontrar",
-        "nao posso fornecer", "desculpe", "nao ha informacoes",
-        "nao e possivel determinar", "nao tenho certeza", "sem dados"
+        "nao sei", "nao tenho informacao", "nao tenho informacoes",
+        "nao consigo encontrar", "nao posso fornecer", "desculpe",
+        "nao ha informacoes", "nao ha informacao", "nao e possivel determinar",
+        "nao tenho certeza", "sem dados", "desconheco"
     ]
     return any(ind in r for ind in indicadores)
 
