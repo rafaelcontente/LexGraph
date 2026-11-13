@@ -1,8 +1,19 @@
+# Python
 __pycache__/
 *.py[cod]
-.pytest_cache/
-*.egg-info/
-build/
-dist/
+*$py.class
+.env
 .venv/
+venv/
+
+# Testes e Caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Dados Intermediários (Opcional: manter se quiseres partilhar o grafo gerado)
+# data/interim/
+# data/graph/
+
+# OS
 .DS_Store

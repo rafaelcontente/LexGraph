@@ -62,3 +62,11 @@ Para validar se o grafo contém efetivamente a evidência necessária para respo
 - **Factual Simples:** 66.7% (As únicas 2 falhas devem-se a perguntas que citam "Considerandos" do preâmbulo, que ainda não são extraídos como nós dedicados no MVP).
 
 **Conclusão da Fase 2:** O grafo possui uma cobertura de entidades excelente (>85%), validando que a arquitetura de dados está pronta para suportar o Verificador Simbólico em cenários reais. A extração de "Considerandos" e "Anexos" está agendada para a v1.1.
+
+---
+
+## 🔮 Trabalho Futuro (v1.1)
+Embora o MVP atinja 90% de cobertura, as seguintes melhorias estão agendadas para elevar a robustez:
+1. **Extração de Considerandos (Recitals):** Adaptar o parser para criar nós `lg:Considerando` e ligá-los aos artigos que fundamentam, fechando os 10% de gap no *Evidence Coverage*.
+2. **Entidades de Prazo Dedicadas:** Extrair datas do texto e criar nós `ai:Prazo` com relações explícitas (`lg:temPrazo`), em vez de depender apenas da busca textual no verificador.
+3. **Correção Automática (RAG):** Fazer o sistema gerar uma nova resposta corrigida com base nos factos retornados pela query SPARQL, em vez de apenas classificar o erro.
