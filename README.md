@@ -51,7 +51,7 @@ python scripts/demo.py
 
 ##  Cobertura de Testes
 
-**59 testes passando** em 3 camadas de CI, incluindo testes de regressão críticos para abstração e sobreposições.
+**59 testes passando** em 3 camadas de CI, incluindo testes de regressão críticos para a abstração e as sobreposições.
 
 ---
 
@@ -70,4 +70,4 @@ make install && make pipeline && make test && make demo
 
 ---
 
-**ConstruÃ­ do com:** Python 3.12 Â» RDFLib Â· Pydantic Â· pytest Â· GitHub Actions Â· Ollama
+**Construído com:** Python 3.12 · RDFLib · Pydantic · pytest · GitHub Actions · Ollama
