@@ -14,17 +14,17 @@
 
 O LexGraph é um "auditor automático" que não se limita a responder: ele verifica se as respostas de IA estão corretas, provando matematicamente quando um modelo inventa informações.
 
-**Exemplo:** Se a IA diz *"O AI Act foi revogado"*, o LexGraph responde: *"Falso. O grafo não contém evidência de revogação."*
+**Exemplo:** Se a IA diz *"O AI Act foi revogado"*, o LexGraph responde: *"Falso."* O grafo não contém evidência de revogação."*
 
 ---
 
 ##  Resultados Comparativos
 
-| MÃ©trica | LLM Zero-Shot | LexGraph (GraphRAG) | Ganho |
+| Métrica | LLM Zero-Shot | LexGraph (GraphRAG) | Ganho |
 | :--- | :--- | :--- | :--- |
 | **Alucinação (Aceites)** | 66.7% | **0.0%** | Eliminação total |
-| **Premissas Falsas** | 0% | **100%** | ðŸŽ Immunidade |
-| **Evidence Coverage** | N/A | **90.0%** | ðŸŽ€ Robusta |
+| **Premissas Falsas** | 0% | **100%** | Imunidade |
+| **Evidence Coverage** | N/A | **90.0%** |  Robusta |
 
 ---
 
@@ -63,11 +63,11 @@ make install && make pipeline && make test && make demo
 
 ---
 
-## ðŸŒ–  DecisÃµes de Arquitetura (ADRs)
+## Decisões de Arquitetura (ADRs)
 
-- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (AbstenÃ§Ã£o â ContradicÃ£o).
+- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (AbstenÃ§Ã£o â Contradição).
 - [ADRÑ002](docs/decisions/002-shacl-over-fragmentation.md): Integridade Estrutural (SHACL).
 
 ---
 
-**ConstruÃ­do com:** Python 3.12 Â» RDFLib Â· Pydantic Â· pytest Â· GitHub Actions Â· Ollama
+**ConstruÃ­ do com:** Python 3.12 Â» RDFLib Â· Pydantic Â· pytest Â· GitHub Actions Â· Ollama
