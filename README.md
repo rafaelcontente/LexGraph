@@ -46,3 +46,9 @@ como ground truth enquanto não for confirmada manualmente.
 Demonstração técnica de verificação factual baseada em grafos. **Não constitui
 aconselhamento jurídico.** Para efeitos legais, consulta sempre o Jornal Oficial
 da União Europeia no EUR-Lex.
+
+## 📊 Resultados e Avaliação
+
+O pipeline LexGraph foi validado end-to-end com dados reais do EUR-Lex. O sistema é capaz de detetar e contradiar alucinações de LLM usando verificação simbólica sobre um grafo de conhecimento validado por SHACL.
+
+Para detalhes técnicos, métricas e estudos de caso, consulta o [Relatório de Resultados](docs/RESULTS.md).

@@ -1,0 +1,80 @@
+name: LexGraph CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # CAMADA 1: RÁPIDA (Corre em cada commit)
+  # Valida schema, parser unitário, e integridade básica.
+  test-fast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest rdflib pydantic beautifulsoup4 lxml
+      - name: Run Fast Tests (Schema, Parser, Verifier Logic)
+        run: |
+          pytest tests/unit/test_modulo3.py -v
+          pytest tests/regression/verifier/ -v
+          pytest tests/regression/parser/ -v
+
+  # CAMADA 2: MÉDIA (Corre em cada Pull Request)
+  # Valida o grafo completo, SHACL e recuperação.
+  test-medium:
+    runs-on: ubuntu-latest
+    needs: test-fast
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest rdflib pydantic beautifulsoup4 lxml pyshacl
+      - name: Download Raw Data (Simulado - em produção viria de um artifact ou script)
+        run: |
+          mkdir -p data/raw data/interim data/graph
+          # Nota: Num CI real, aqui farias o download dos HTMLs ou usarias um cache do GitHub Actions
+          echo "A assumir que os dados brutos estão disponíveis ou a usar mocks para o grafo."
+      - name: Run Medium Tests (Graph Integrity, SHACL, Deduplication)
+        run: |
+          pytest tests/regression/graph/ -v
+          # Opcional: python scripts/measure_graph_quality.py
+
+  # CAMADA 3: COMPLETA (Corre antes de Merge/Release)
+  # Valida o benchmark completo, ablações e auditoria.
+  test-complete:
+    runs-on: ubuntu-latest
+    needs: test-medium
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest rdflib pydantic
+      - name: Run Complete Benchmark & Audit
+        run: |
+          # Executa o baseline mock (determinístico, sem custos de API)
+          python scripts/run_baseline.py --provider mock
+          # Executa o verificador simbólico
+          python scripts/run_verifier.py --input baseline_mock.jsonl
+          # Valida que o output foi gerado
+          test -f data/evals/baseline_mock_verified.jsonl

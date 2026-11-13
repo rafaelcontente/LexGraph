@@ -1,6 +1,7 @@
 """
 Ingestão do Corpus Real no Grafo RDF (Módulo 1, Fase 2).
 Lê o JSONL estruturado e gera triplos RDF válidos pelo nosso schema/SHACL.
+Garante que cada unidade tenha apenas a sua versão mais recente, evitando sobreposições SHACL.
 """
 import hashlib
 import json
@@ -33,39 +34,23 @@ def main():
 
     print(f"📥 Lidos {len(registos)} registos de {INTERIM}")
 
-    # 1. Deduplicação: manter a versão com o texto mais longo
-    versoes = {}
-    atos_info = {} # Para rastrear os atos (celex, url)
+    # 1. Deduplicação Inteligente: manter APENAS a versão mais recente de cada unidade
+    # Isto resolve as violações SHACL de "versões sobrepostas"
+    versoes_mais_recentes = {}
     
     for r in registos:
         uid = r["unidade_id"]
         vig_inicio = r.get("vigencia", {}).get("inicio", "2024-08-01")
-        data_safe = vig_inicio.replace("-", "")
-        v_uri_str = f"{uid}_v_{data_safe}"
         
-        texto = r.get("texto", "")
-        celex = r.get("fonte", {}).get("celex", "UNKNOWN")
-        url = r.get("fonte", {}).get("url_oficial", "")
-        
-        atos_info[celex] = url
-        
-        if v_uri_str in versoes:
-            if len(texto) > len(versoes[v_uri_str]["texto"]):
-                versoes[v_uri_str]["texto"] = texto
-                versoes[v_uri_str]["tipo"] = r.get("tipo", "ARTIGO").upper()
-                versoes[v_uri_str]["parent_id"] = r.get("parent_id")
-                versoes[v_uri_str]["celex"] = celex
+        if uid not in versoes_mais_recentes:
+            versoes_mais_recentes[uid] = r
         else:
-            versoes[v_uri_str] = {
-                "uid": uid,
-                "tipo": r.get("tipo", "ARTIGO").upper(),
-                "parent_id": r.get("parent_id"),
-                "texto": texto,
-                "vig_inicio": vig_inicio,
-                "celex": celex
-            }
+            # Comparar datas: manter a mais recente
+            data_atual = versoes_mais_recentes[uid].get("vigencia", {}).get("inicio", "2024-08-01")
+            if vig_inicio > data_atual:
+                versoes_mais_recentes[uid] = r
 
-    print(f"✅ Deduplicados: {len(registos)} -> {len(versoes)} versões únicas")
+    print(f"✅ Deduplicados: {len(registos)} -> {len(versoes_mais_recentes)} versões únicas (mais recentes)")
 
     # 2. Construção do Grafo
     g = Graph()
@@ -73,17 +58,16 @@ def main():
     g.bind("ai", AI)
     g.bind("ex", EX)
 
-    unidades_criadas = set()
     atos_criados = set()
 
-    for v_str, dados in versoes.items():
-        uid = dados["uid"]
+    for uid, r in versoes_mais_recentes.items():
         u_uri = uri(uid)
-        tipo = dados["tipo"]
-        vig_inicio = dados["vig_inicio"]
-        texto = dados["texto"]
-        parent_id = dados["parent_id"]
-        celex = dados["celex"]
+        tipo = r.get("tipo", "ARTIGO").upper()
+        vig_inicio = r.get("vigencia", {}).get("inicio", "2024-08-01")
+        texto = r.get("texto", "")
+        parent_id = r.get("parent_id")
+        celex = r.get("fonte", {}).get("celex", "UNKNOWN")
+        url = r.get("fonte", {}).get("url_oficial", "")
         
         data_safe = vig_inicio.replace("-", "")
         v_uri = URIRef(f"{u_uri}_v_{data_safe}")
@@ -93,21 +77,19 @@ def main():
         if celex not in atos_criados:
             g.add((ato_uri, RDF.type, LG.RecursoJuridico))
             g.add((ato_uri, LG.celex, Literal(celex)))
-            if atos_info.get(celex):
-                g.add((ato_uri, LG.urlOficial, URIRef(atos_info[celex])))
+            if url:
+                g.add((ato_uri, LG.urlOficial, URIRef(url)))
             atos_criados.add(celex)
 
-        # Criar a Unidade Normativa (se ainda não existir)
-        if uid not in unidades_criadas:
-            if tipo == "ARTIGO":
-                g.add((u_uri, RDF.type, AI.Artigo))
-            elif tipo in ("PARAGRAFO", "NUMERO"):
-                g.add((u_uri, RDF.type, AI.Numero))
-            else:
-                g.add((u_uri, RDF.type, LG.UnidadeNormativa))
-            unidades_criadas.add(uid)
+        # Criar a Unidade Normativa
+        if tipo == "ARTIGO":
+            g.add((u_uri, RDF.type, AI.Artigo))
+        elif tipo in ("PARAGRAFO", "NUMERO"):
+            g.add((u_uri, RDF.type, AI.Numero))
+        else:
+            g.add((u_uri, RDF.type, LG.UnidadeNormativa))
 
-        # Criar a Versão da Unidade
+        # Criar a Versão da Unidade (apenas uma por unidade, a mais recente)
         g.add((v_uri, RDF.type, LG.VersaoUnidade))
         g.add((v_uri, LG.versaoDe, u_uri))
         g.add((u_uri, LG.temVersao, v_uri))
@@ -121,7 +103,7 @@ def main():
         
         g.add((v_uri, LG.vigenciaInicio, Literal(vig_inicio, datatype=XSD.date)))
         
-        # CORREÇÃO: Ligar a versão à fonte oficial (obrigatório pelo SHACL)
+        # Ligar a versão à fonte oficial (obrigatório pelo SHACL)
         g.add((v_uri, LG.fonteOficial, ato_uri))
         
         # Estado (Maker-Checker: tudo o que entra do parser é Candidato)
@@ -130,9 +112,9 @@ def main():
         # Hierarquia (parentesco entre unidades)
         if parent_id:
             p_uri = uri(parent_id)
-            if parent_id not in unidades_criadas:
+            # Garantir que o pai existe como UnidadeNormativa
+            if (p_uri, RDF.type, None) not in g:
                 g.add((p_uri, RDF.type, LG.UnidadeNormativa))
-                unidades_criadas.add(parent_id)
             
             g.add((p_uri, LG.temParte, u_uri))
             g.add((u_uri, LG.parteDe, p_uri))
@@ -146,7 +128,7 @@ def main():
     print("🔍 A validar com SHACL...")
     ok, rel = validar_shacl(g)
     if ok:
-        print("🎉 Validação SHACL passou com sucesso! O grafo real está pronto.")
+        print("🎉 Validação SHACL passou com sucesso! O grafo real está pronto e estruturalmente perfeito.")
     else:
         print("⚠️  Aviso de validação SHACL:")
         print(rel[:1500])

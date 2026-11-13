@@ -30,11 +30,33 @@ def correr(provider_nome: str, *, particao: Particao | None = None, limit: int |
         questoes = [q for q in questoes if q.particao is particao]
     if limit:
         questoes = questoes[:limit]
+    
     resultados = []
     for q in questoes:
         resp = provider.generate(prompt_para(q))
         j = julgar(q, resp.texto)
-        resultados.append({"id": q.id, "categoria": q.categoria.value, "particao": q.particao.value, "pos_cutoff": q.pos_cutoff, "pergunta": q.pergunta, "resposta_esperada": q.resposta_esperada, "resposta_llm": resp.texto, "modelo": resp.modelo, "latencia_ms": resp.latencia_ms, "tokens_estimados": resp.tokens_estimados, "erro_provider": resp.erro, "status": j.status, "avaliavel": j.avaliavel, "motivo": j.motivo, "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds")})
+        
+        # CORREÇÃO: Incluir premissa_declarada e procura_negativa para o verificador
+        resultados.append({
+            "id": q.id, 
+            "categoria": q.categoria.value, 
+            "particao": q.particao.value, 
+            "pos_cutoff": q.pos_cutoff, 
+            "pergunta": q.pergunta, 
+            "premissa_declarada": getattr(q, "premissa_declarada", None),
+            "procura_negativa": getattr(q, "procura_negativa", None),
+            "resposta_esperada": q.resposta_esperada, 
+            "resposta_llm": resp.texto, 
+            "modelo": resp.modelo, 
+            "latencia_ms": resp.latencia_ms, 
+            "tokens_estimados": resp.tokens_estimados, 
+            "erro_provider": resp.erro, 
+            "status": j.status, 
+            "avaliavel": j.avaliavel, 
+            "motivo": j.motivo, 
+            "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds")
+        })
+        
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     destino = OUT_DIR / f"baseline_{provider_nome}.jsonl"
     with destino.open("w", encoding="utf-8") as fh:
@@ -50,7 +72,17 @@ def metricas(resultados: list[dict]) -> dict:
     aceites = [r for r in avaliadas if r["status"] in ("correta", "errada")]
     alucinadas = [r for r in aceites if r["status"] == "errada"]
     cont = Counter(r["status"] for r in avaliadas)
-    return {"total_questoes": n, "avaliadas": a, "pendentes_verificador": len(pendentes), "corretas": cont["correta"], "erradas_alucinacao": cont["errada"], "abstencoes": cont["abstencoes"], "taxa_alucinacao_aceites": (round(len(alucinadas)/len(aceites), 3) if aceites else None), "cobertura": round(a / n, 3) if n else None, "taxa_correcao_global": round(cont["correta"] / n, 3) if n else None}
+    return {
+        "total_questoes": n, 
+        "avaliadas": a, 
+        "pendentes_verificador": len(pendentes), 
+        "corretas": cont["correta"], 
+        "erradas_alucinacao": cont["errada"], 
+        "abstencoes": cont["abstencoes"], 
+        "taxa_alucinacao_aceites": (round(len(alucinadas)/len(aceites), 3) if aceites else None), 
+        "cobertura": round(a / n, 3) if n else None, 
+        "taxa_correcao_global": round(cont["correta"] / n, 3) if n else None
+    }
 
 def resumo_por_categoria(resultados: list[dict]) -> dict:
     out: dict = {}
