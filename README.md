@@ -65,7 +65,7 @@ make install && make pipeline && make test && make demo
 
 ## Decisões de Arquitetura (ADRs)
 
-- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (Abstenção âContradição).
+- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (Abstenção á Contradição).
 - [ADRÑ002](docs/decisions/002-shacl-over-fragmentation.md): Integridade Estrutural (SHACL).
 
 ---
