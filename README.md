@@ -6,35 +6,35 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/downloads/)
 
-**Sistema de IA Neuro-Simbólica que deteta e prova alucinaões de LLMs sobre regulamentação da UE, usando grafos de conhecimento validados por SHACL.**
+**Sistema de IA Neuro-Simbólica que deteta e prova alucinações de LLMs sobre regulamentação da UE, usando grafos de conhecimento validados por SHACL.**
 
 ---
 
-## 🎉 Em Uma Frase
+## Em Uma Frase
 
-O LexGraph ã um "auditor automático" que não se limita a responder: ele verifica se as respostas de IA estão corretas, provando matematicamente quando um modelo inventa informações.
+O LexGraph é um "auditor automático" que não se limita a responder: ele verifica se as respostas de IA estão corretas, provando matematicamente quando um modelo inventa informações.
 
 **Exemplo:** Se a IA diz *"O AI Act foi revogado"*, o LexGraph responde: *"Falso. O grafo não contém evidência de revogação."*
 
 ---
 
-## 🧊 Resultados Comparativos
+##  Resultados Comparativos
 
-| Métrica | LLM Zero-Shot | LexGraph (GraphRAG) | Ganho |
+| MÃ©trica | LLM Zero-Shot | LexGraph (GraphRAG) | Ganho |
 | :--- | :--- | :--- | :--- |
-| **Alucinação (Aceites)** | 66.7% | **0.0%** | 𞛀� Eliminação total |
-| **Premissas Falsas** | 0% | **100%** | 🎏 Immunidade |
-| **Evidence Coverage** | N/A | **90.0%** | 🎀 Robusta |
+| **Alucinação (Aceites)** | 66.7% | **0.0%** | Eliminação total |
+| **Premissas Falsas** | 0% | **100%** | ðŸŽ Immunidade |
+| **Evidence Coverage** | N/A | **90.0%** | ðŸŽ€ Robusta |
 
 ---
 
-## 🌍 Análise de Falhas
+## Análise de Falhas
 
-Os 10% de falha (q_014, q_015) devem-se a citações de *"Considerando (46)"*, que o parser MVP ainda não extrai como nës dedicados. Mitigação agendada para v1.1.
+Os 10% de falha (q_014, q_015) devem-se a citações de *"Considerando (46)"*, que o parser MVP ainda não extrai como nós dedicados. Mitigação agendada para v1.1.
 
 ---
 
-## 🎪� Demo Interativa
+##  Demo Interativa
 
 ```bash
 python scripts/demo.py
@@ -42,20 +42,20 @@ python scripts/demo.py
 
 ---
 
-## 🧈 Qualidade do Grafo
+##  Qualidade do Grafo
 
 - **Triplos:** 7,010 | **Artigos:** 113 | **Violações SHACL: **
 - **Recall Entidades:** 100% | **Cobertura Temporal:** 100%
 
 ---
 
-## 𞧪 Cobertura de Testes
+##  Cobertura de Testes
 
-**59 testes passando** em 3 camadas de CI, incluindo testes de regressão críticos para abstenção e sobreposições.
+**59 testes passando** em 3 camadas de CI, incluindo testes de regressão críticos para abstração e sobreposições.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 make install && make pipeline && make test && make demo
@@ -63,11 +63,11 @@ make install && make pipeline && make test && make demo
 
 ---
 
-## 🌖  Decisões de Arquitetura (ADRs)
+## ðŸŒ–  DecisÃµes de Arquitetura (ADRs)
 
-- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (Abstenção ⁍ Contradicão).
-- [ADR�002](docs/decisions/002-shacl-over-fragmentation.md): Integridade Estrutural (SHACL).
+- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (AbstenÃ§Ã£o â ContradicÃ£o).
+- [ADRÑ002](docs/decisions/002-shacl-over-fragmentation.md): Integridade Estrutural (SHACL).
 
 ---
 
-**Construído com:** Python 3.12 » RDFLib · Pydantic · pytest · GitHub Actions · Ollama
+**ConstruÃ­do com:** Python 3.12 Â» RDFLib Â· Pydantic Â· pytest Â· GitHub Actions Â· Ollama
