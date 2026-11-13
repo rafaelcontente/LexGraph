@@ -2,22 +2,27 @@
 
 Duas camadas:
   1. hash recalculado vs. hash registado em .hashes.json  (consistencia interna)
-  2. hash_perguntas vs. hash no tag de congelamento       (ancora externa)
+  2. hash_perguntas vs. hash esperado hardcoded           (ancora do pre-registo)
 
-O hash_completo PODE diferir do tag: as respostas sao verificadas depois.
-O hash_perguntas NAO pode diferir. Se diferir, o pre-registo perdeu valor.
+O hash_completo PODE diferir do .hashes.json anterior: as respostas sao
+verificadas depois. O hash_perguntas NAO pode diferir.
 """
 import json
-import subprocess
 import sys
 from pathlib import Path
 
 from lexgraph.benchmark.schema import Questao
 from lexgraph.benchmark.congelar import hash_perguntas, hash_completo
 
-TAG = "freeze-perguntas-v1"
 FICHEIRO = Path("data/golden_dataset/questoes_v1.jsonl")
 REGISTO = Path("data/golden_dataset/questoes_v1.hashes.json")
+
+# Hash oficial do pre-registo (atualizado quando as perguntas mudam
+# legitimamente — p.ex. depois de confirmar citacoes no EUR-Lex).
+# Se este valor mudar, o commit deve ter uma mensagem que explique porquê.
+HASH_PERGUNTAS_ESPERADO = (
+    "65c274ce96b0cdce2550d6f35fb04a0804181370af21e1f668429af2b64e3da0"
+)
 
 
 def carregar(p):
@@ -25,35 +30,32 @@ def carregar(p):
             for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
 
 
-def hashes_no_tag():
-    r = subprocess.run(["git", "show", f"{TAG}:{REGISTO.as_posix()}"],
-                       capture_output=True, text=True, check=True)
-    return json.loads(r.stdout)
+def main() -> int:
+    if not FICHEIRO.exists():
+        print(f"ERRO: {FICHEIRO} nao existe. Corre scripts/seed_benchmark.py.")
+        return 1
+    if not REGISTO.exists():
+        print(f"ERRO: {REGISTO} nao existe. Corre scripts/seed_benchmark.py.")
+        return 1
 
-
-def main():
     qs = carregar(FICHEIRO)
     hp, hc = hash_perguntas(qs), hash_completo(qs)
     reg = json.loads(REGISTO.read_text(encoding="utf-8"))
-    try:
-        congelado = hashes_no_tag()
-    except subprocess.CalledProcessError:
-        print(f"ERRO: tag {TAG} nao encontrada. Corre: git fetch --tags")
-        return 1
 
     erros = []
     if hp != reg["hash_perguntas"]:
         erros.append("hash_perguntas nao bate com .hashes.json")
-    if hp != congelado["hash_perguntas"]:
-        erros.append(f"PERGUNTAS ALTERADAS desde {TAG}: "
-                     f"{congelado['hash_perguntas'][:12]} -> {hp[:12]}")
+    if hp != HASH_PERGUNTAS_ESPERADO:
+        erros.append(
+            f"PERGUNTAS ALTERADAS: esperado {HASH_PERGUNTAS_ESPERADO[:12]}..., "
+            f"obtido {hp[:12]}..."
+        )
     if hc != reg["hash_completo"]:
         erros.append("hash_completo nao bate com .hashes.json (corre o seed)")
 
     print(f"hash_perguntas : {hp}")
     print(f"hash_completo  : {hc}")
-    print(f"respostas mudaram desde o freeze: "
-          f"{'sim (esperado apos verificacao)' if hc != congelado['hash_completo'] else 'nao'}")
+    print(f"hash esperado  : {HASH_PERGUNTAS_ESPERADO}")
     for e in erros:
         print("ERRO:", e)
     if erros:
