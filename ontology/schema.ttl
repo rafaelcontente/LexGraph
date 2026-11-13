@@ -1,0 +1,201 @@
+@prefix lg:      <https://lexgraph.dev/ns/core#> .
+@prefix ai:      <https://lexgraph.dev/ns/aiact#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix eli:     <http://data.europa.eu/eli/ontology#> .
+
+<https://lexgraph.dev/ns/core> a owl:Ontology ;
+    owl:versionInfo "0.1.0" ;
+    dcterms:title "LexGraph — core + domínio EU AI Act"@pt ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    rdfs:comment """Contrato simbólico. Regras de validação vivem em shapes.ttl (SHACL),
+não aqui: OWL infere sob mundo aberto e NÃO deteta dados em falta."""@pt .
+
+# =====================================================================
+# CORE — identificação e estrutura (independente do domínio)
+# =====================================================================
+
+lg:RecursoJuridico a owl:Class ;
+    rdfs:label "Recurso jurídico (obra)"@pt ;
+    rdfs:comment "O ato enquanto identidade abstracta: Regulamento (UE) 2024/1689."@pt ;
+    skos:closeMatch eli:LegalResource .
+
+lg:Expressao a owl:Class ;
+    rdfs:label "Expressão (versão consolidada)"@pt ;
+    skos:closeMatch eli:LegalExpression .
+
+lg:UnidadeNormativa a owl:Class ;
+    rdfs:label "Unidade normativa"@pt ;
+    rdfs:comment "Identidade estrutural estável: art_6_par_2. Atravessa versões."@pt .
+
+lg:VersaoUnidade a owl:Class ;
+    rdfs:label "Versão de unidade"@pt ;
+    rdfs:comment "Texto de uma unidade num intervalo semiaberto [início, fim)."@pt ;
+    prov:wasDerivedFrom lg:Expressao .
+
+lg:Alteracao a owl:Class ;
+    rdfs:subClassOf prov:Activity ;
+    rdfs:label "Alteração"@pt ;
+    rdfs:comment "Evento que liga versão anterior → versão nova, com ato e data de efeito."@pt .
+
+lg:Agente a owl:Class ; rdfs:subClassOf prov:Agent ; rdfs:label "Agente"@pt .
+
+lg:UnidadeNormativa owl:disjointWith lg:VersaoUnidade, lg:Alteracao .
+
+# --- hierarquia -------------------------------------------------------
+lg:temParte a owl:ObjectProperty ; rdfs:label "tem parte"@pt ;
+    rdfs:domain lg:UnidadeNormativa ; rdfs:range lg:UnidadeNormativa .
+lg:parteDe a owl:ObjectProperty ; owl:inverseOf lg:temParte ; a owl:TransitiveProperty ;
+    rdfs:label "parte de"@pt .
+
+# --- versionamento ----------------------------------------------------
+lg:temVersao a owl:ObjectProperty ; rdfs:label "tem versão"@pt ;
+    rdfs:domain lg:UnidadeNormativa ; rdfs:range lg:VersaoUnidade .
+lg:versaoDe a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf lg:temVersao ; rdfs:label "versão de"@pt .
+
+lg:vigenciaInicio a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "vigência textual — início"@pt ;
+    rdfs:domain lg:EntidadeVersionada ; rdfs:range xsd:date .
+lg:vigenciaFim a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "vigência textual — fim (exclusivo)"@pt ;
+    rdfs:domain lg:EntidadeVersionada ; rdfs:range xsd:date .
+
+lg:aplicacaoInicio a owl:DatatypeProperty ;
+    rdfs:label "aplicação — início"@pt ;
+    rdfs:comment "Efeito normativo. Distinto de vigência textual (art. 113.º)."@pt ;
+    rdfs:range xsd:date .
+lg:aplicacaoFim a owl:DatatypeProperty ; rdfs:label "aplicação — fim"@pt ; rdfs:range xsd:date .
+lg:aplicacaoHerdadaDe a owl:ObjectProperty ; rdfs:label "aplicação herdada de"@pt .
+
+lg:texto a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain lg:VersaoUnidade ; rdfs:range xsd:string ; rdfs:label "texto"@pt .
+lg:textoHash a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain lg:VersaoUnidade ; rdfs:range xsd:string ; rdfs:label "hash SHA-256 do texto"@pt .
+lg:rotulo a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "rótulo"@pt .
+lg:ordem a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .
+
+# --- proveniência -----------------------------------------------------
+lg:fonteOficial a owl:ObjectProperty ; rdfs:label "fonte oficial"@pt ; rdfs:range lg:Expressao .
+lg:celex a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "CELEX"@pt .
+lg:eli a owl:ObjectProperty ; rdfs:label "ELI"@pt .
+lg:urlOficial a owl:ObjectProperty ; rdfs:label "URL oficial"@pt .
+lg:extraidoPor a owl:ObjectProperty ; rdfs:subPropertyOf prov:wasAttributedTo ;
+    rdfs:range lg:Agente ; rdfs:label "extraído por"@pt .
+lg:revistoPor a owl:ObjectProperty ; rdfs:range lg:Agente ; rdfs:label "revisto por"@pt .
+
+lg:estadoVerificacao a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "estado de verificação"@pt ;
+    rdfs:comment "Portão maker-checker ao nível do dado."@pt .
+
+ai:Candidato a skos:Concept ; skos:prefLabel "candidato (LLM, não revisto)"@pt .
+ai:Revisto   a skos:Concept ; skos:prefLabel "revisto por humano"@pt .
+ai:Rejeitado a skos:Concept ; skos:prefLabel "rejeitado na revisão"@pt .
+ai:Interpretado a skos:Concept ; skos:prefLabel "camada interpretativa, sem anchor literal"@pt .
+
+# --- remissões e alterações ------------------------------------------
+lg:remetePara a owl:ObjectProperty ; rdfs:label "remete para"@pt ;
+    rdfs:domain lg:UnidadeNormativa ; rdfs:range lg:UnidadeNormativa .
+
+lg:altera a owl:ObjectProperty ; rdfs:domain lg:Alteracao ; rdfs:range lg:UnidadeNormativa .
+lg:atoAlterador a owl:ObjectProperty ; rdfs:domain lg:Alteracao ; rdfs:range lg:RecursoJuridico .
+lg:versaoAnterior a owl:ObjectProperty ; rdfs:domain lg:Alteracao ; rdfs:range lg:VersaoUnidade .
+lg:versaoNova a owl:ObjectProperty ; rdfs:domain lg:Alteracao ; rdfs:range lg:VersaoUnidade .
+lg:dataEfeito a owl:DatatypeProperty ; rdfs:domain lg:Alteracao ; rdfs:range xsd:date .
+lg:tipoAlteracao a owl:ObjectProperty ; rdfs:domain lg:Alteracao .
+
+ai:Substituicao a skos:Concept ; skos:prefLabel "substituição de texto"@pt .
+ai:Aditamento   a skos:Concept ; skos:prefLabel "aditamento"@pt .
+ai:Revogacao    a skos:Concept ; skos:prefLabel "revogação"@pt .
+ai:Prorrogacao  a skos:Concept ; skos:prefLabel "prorrogação de prazo"@pt .
+
+# =====================================================================
+# DOMÍNIO — Regulamento (UE) 2024/1689
+# =====================================================================
+
+ai:Artigo       a owl:Class ; rdfs:subClassOf lg:UnidadeNormativa ; rdfs:label "Artigo"@pt .
+ai:Numero       a owl:Class ; rdfs:subClassOf lg:UnidadeNormativa ; rdfs:label "Número"@pt .
+ai:Alinea       a owl:Class ; rdfs:subClassOf lg:UnidadeNormativa ; rdfs:label "Alínea"@pt .
+ai:Ponto        a owl:Class ; rdfs:subClassOf lg:UnidadeNormativa ; rdfs:label "Ponto"@pt .
+ai:Considerando a owl:Class ; rdfs:subClassOf lg:UnidadeNormativa ; rdfs:label "Considerando"@pt .
+ai:Anexo        a owl:Class ; rdfs:subClassOf lg:UnidadeNormativa ; rdfs:label "Anexo"@pt .
+
+ai:Definicao a owl:Class ; rdfs:subClassOf skos:Concept ; rdfs:label "Definição"@pt ;
+    rdfs:comment "Art. 3.º. Termo definido com anchor textual obrigatório."@pt .
+ai:termoDefinido a owl:DatatypeProperty ; rdfs:domain ai:Definicao ; rdfs:range xsd:string .
+
+# --- normas -----------------------------------------------------------
+ai:Norma a owl:Class ; rdfs:label "Norma"@pt .
+ai:Obrigacao  a owl:Class ; rdfs:subClassOf ai:Norma ; rdfs:label "Obrigação"@pt .
+ai:Proibicao  a owl:Class ; rdfs:subClassOf ai:Norma ; rdfs:label "Proibição"@pt .
+ai:Isencao    a owl:Class ; rdfs:subClassOf ai:Norma ; rdfs:label "Isenção / derrogação"@pt .
+ai:Obrigacao owl:disjointWith ai:Proibicao, ai:Isencao .
+
+ai:fonteNormativa a owl:ObjectProperty ; rdfs:label "fonte normativa"@pt ;
+    rdfs:domain ai:Norma ; rdfs:range lg:VersaoUnidade ;
+    rdfs:comment "OBRIGATÓRIO (SHACL). Toda a norma aponta ao texto que a sustenta."@pt .
+
+ai:obrigaA a owl:ObjectProperty ; rdfs:domain ai:Norma ; rdfs:range ai:Ator ;
+    rdfs:label "obriga a"@pt .
+ai:aplicaSeA a owl:ObjectProperty ; rdfs:domain ai:Norma ; rdfs:label "aplica-se a"@pt .
+ai:temPrazo a owl:ObjectProperty ; rdfs:domain ai:Norma ; rdfs:range ai:Prazo ;
+    rdfs:label "tem prazo"@pt .
+
+# --- atores (art. 3.º) -------------------------------------------------
+ai:Ator a owl:Class ; rdfs:label "Ator"@pt .
+ai:Fornecedor            a owl:Class ; rdfs:subClassOf ai:Ator ; rdfs:label "Fornecedor"@pt .
+ai:Utilizador            a owl:Class ; rdfs:subClassOf ai:Ator ; rdfs:label "Utilizador (deployer)"@pt .
+ai:Importador            a owl:Class ; rdfs:subClassOf ai:Ator ; rdfs:label "Importador"@pt .
+ai:Distribuidor          a owl:Class ; rdfs:subClassOf ai:Ator ; rdfs:label "Distribuidor"@pt .
+ai:RepresentanteAutorizado a owl:Class ; rdfs:subClassOf ai:Ator ; rdfs:label "Representante autorizado"@pt .
+ai:Fornecedor owl:disjointWith ai:Importador, ai:Distribuidor .
+
+# --- prazos ------------------------------------------------------------
+ai:Prazo a owl:Class ; rdfs:label "Prazo"@pt ;
+    rdfs:comment "Data com efeito normativo. tipoPrazo distingue aplicação de cumprimento."@pt .
+ai:Obrigacao owl:disjointWith ai:Prazo .
+
+ai:dataPrazo a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain ai:Prazo ; rdfs:range xsd:date ; rdfs:label "data do prazo"@pt .
+ai:tipoPrazo a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:domain ai:Prazo .
+ai:PrazoAplicacao  a skos:Concept ; skos:prefLabel "data de aplicação de obrigações"@pt .
+ai:PrazoCumprimento a skos:Concept ; skos:prefLabel "prazo de cumprimento de uma ação"@pt .
+ai:PrazoReporte    a skos:Concept ; skos:prefLabel "prazo de reporte / notificação"@pt .
+
+ai:regeAplicacaoDe a owl:ObjectProperty ; rdfs:domain ai:Prazo ;
+    rdfs:label "rege a aplicação de"@pt ;
+    rdfs:comment "Liga o prazo ao conjunto de normas cuja aplicação ele calendariza."@pt .
+
+# --- categorias de risco (CAMADA INTERPRETATIVA) ------------------------
+ai:CategoriaRisco a owl:Class ; rdfs:subClassOf skos:Concept ;
+    rdfs:label "Categoria de risco"@pt ;
+    rdfs:comment """O Regulamento não define formalmente esta taxonomia.
+Só 'alto risco' tem anchor textual direto (art. 6.º). As restantes são
+construto interpretativo → marcar lg:estadoVerificacao ai:Interpretado."""@pt .
+
+ai:AltoRisco      a ai:CategoriaRisco ; skos:prefLabel "Alto risco"@pt .
+ai:RiscoInaceitavel a ai:CategoriaRisco ; skos:prefLabel "Risco inaceitável (proibido)"@pt .
+ai:RiscoLimitado  a ai:CategoriaRisco ; skos:prefLabel "Risco limitado (transparência)"@pt .
+ai:RiscoMinimo    a ai:CategoriaRisco ; skos:prefLabel "Risco mínimo"@pt .
+
+ai:SistemaIA a owl:Class ; rdfs:label "Sistema de IA"@pt .
+ai:ModeloIAGPA a owl:Class ; rdfs:label "Modelo de IA de finalidade geral"@pt .
+lg:fonteNormativa a owl:ObjectProperty ;
+    rdfs:label "fonte normativa"@pt ;
+    rdfs:range lg:VersaoUnidade ;
+    rdfs:comment "Obrigatório (SHACL) em normas e prazos. Sem isto não há prova."@pt .
+
+ai:ConjuntoNormativo a owl:Class ;
+    rdfs:label "Conjunto de normas"@pt ;
+    rdfs:comment "Agrupamento cuja aplicação um prazo calendariza (ex.: Anexo III)."@pt .
+
+lg:EntidadeVersionada a owl:Class ;
+    rdfs:label "Entidade versionada no tempo"@pt ;
+    rdfs:comment "Qualquer coisa cuja validade é um intervalo semiaberto [inicio, fim)."@pt .
+
+lg:VersaoUnidade rdfs:subClassOf lg:EntidadeVersionada .
+ai:Prazo rdfs:subClassOf lg:EntidadeVersionada .

@@ -1,0 +1,109 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix lg:   <https://lexgraph.dev/ns/core#> .
+@prefix ai:   <https://lexgraph.dev/ns/aiact#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+
+<https://lexgraph.dev/ns/shapes> a owl:Ontology ;
+    sh:declare [ sh:prefix "lg" ; sh:namespace "https://lexgraph.dev/ns/core#"^^xsd:anyURI ] ;
+    sh:declare [ sh:prefix "ai" ; sh:namespace "https://lexgraph.dev/ns/aiact#"^^xsd:anyURI ] .
+
+# ── 1. Versão de unidade: texto, datas, hash, fonte ────────────────────
+lg:VersaoUnidadeShape a sh:NodeShape ;
+    sh:targetClass lg:VersaoUnidade ;
+    sh:property [ sh:path lg:versaoDe ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:class lg:UnidadeNormativa ;
+                  sh:message "Versão sem unidade-mãe."@pt ] ;
+    sh:property [ sh:path lg:vigenciaInicio ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:date ;
+                  sh:message "Toda a versão tem exatamente um início (xsd:date)."@pt ] ;
+    sh:property [ sh:path lg:vigenciaFim ; sh:maxCount 1 ; sh:datatype xsd:date ] ;
+    sh:property [ sh:path lg:texto ; sh:minCount 1 ; sh:minLength 1 ] ;
+    sh:property [ sh:path lg:textoHash ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:pattern "^[a-f0-9]{64}$" ;
+                  sh:message "textoHash tem de ser SHA-256 hex de 64 caracteres."@pt ] ;
+    sh:property [ sh:path lg:fonteOficial ; sh:minCount 1 ;
+                  sh:message "Versão sem fonte oficial — não é citável."@pt ] ;
+    sh:sparql [
+        sh:message "vigenciaFim ({?fim}) não é posterior a vigenciaInicio ({?ini})."@pt ;
+        sh:prefixes <https://lexgraph.dev/ns/shapes> ;
+        sh:select """
+            PREFIX lg: <https://lexgraph.dev/ns/core#>
+            SELECT $this ?ini ?fim WHERE {
+                $this lg:vigenciaInicio ?ini ; lg:vigenciaFim ?fim .
+                FILTER(?fim <= ?ini)
+            }
+        """ ] .
+
+# ── 2. Unidade: tem versão + não-sobreposição temporal ────────────────
+lg:UnidadeNormativaShape a sh:NodeShape ;
+    sh:targetClass lg:UnidadeNormativa ;
+    sh:property [ sh:path lg:temVersao ; sh:minCount 1 ;
+                  sh:message "Unidade sem nenhuma versão."@pt ] ;
+    sh:sparql [
+        sh:message "Versões sobrepostas da mesma unidade: {?v1} e {?v2}."@pt ;
+        sh:prefixes <https://lexgraph.dev/ns/shapes> ;
+        sh:select """
+            PREFIX lg: <https://lexgraph.dev/ns/core#>
+            SELECT $this ?v1 ?v2 WHERE {
+                $this lg:temVersao ?v1, ?v2 .
+                FILTER(?v1 != ?v2)
+                ?v1 lg:vigenciaInicio ?i1 .
+                ?v2 lg:vigenciaInicio ?i2 .
+                FILTER(?i1 < ?i2)
+                OPTIONAL { ?v1 lg:vigenciaFim ?f1 }
+                FILTER(!BOUND(?f1) || ?i2 < ?f1)
+            }
+        """ ] .
+
+# ── 3. Remissões: o alvo tem de existir e ser uma unidade ─────────────
+lg:RemissaoShape a sh:NodeShape ;
+    sh:targetSubjectsOf lg:remetePara ;
+    sh:property [ sh:path lg:remetePara ; sh:class lg:UnidadeNormativa ;
+                  sh:message "Remissão aponta para artigo inexistente."@pt ] .
+
+# ── 4. Norma: fonte normativa obrigatória ─────────────────────────────
+ai:NormaShape a sh:NodeShape ;
+    sh:targetClass ai:Norma ;
+    sh:property [ sh:path lg:fonteNormativa ; sh:minCount 1 ; sh:class lg:VersaoUnidade ;
+                  sh:message "Norma sem artigo de origem — não é verificável."@pt ] ;
+    sh:property [ sh:path lg:estadoVerificacao ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+# ── 5. Prazo: data, tipo, fonte, vigência ─────────────────────────────
+ai:PrazoShape a sh:NodeShape ;
+    sh:targetClass ai:Prazo ;
+    sh:property [ sh:path ai:dataPrazo ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:date ;
+                  sh:message "Todo o prazo tem exatamente uma data (xsd:date)."@pt ] ;
+    sh:property [ sh:path ai:tipoPrazo ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:in ( ai:PrazoAplicacao ai:PrazoCumprimento ai:PrazoReporte ) ] ;
+    sh:property [ sh:path lg:fonteNormativa ; sh:minCount 1 ; sh:class lg:VersaoUnidade ] ;
+    sh:property [ sh:path lg:vigenciaInicio ; sh:minCount 1 ; sh:datatype xsd:date ] ;
+    sh:property [ sh:path ai:regeAplicacaoDe ; sh:minCount 1 ] ;
+    sh:property [ sh:path lg:estadoVerificacao ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+# ── 6. Maker-checker: não se declara "revisto" sem revisor ────────────
+lg:RevisaoShape a sh:NodeShape ;
+    sh:targetSubjectsOf lg:estadoVerificacao ;
+    sh:sparql [
+        sh:message "Marcado como Revisto mas sem lg:revistoPor."@pt ;
+        sh:prefixes <https://lexgraph.dev/ns/shapes> ;
+        sh:select """
+            PREFIX lg: <https://lexgraph.dev/ns/core#>
+            PREFIX ai: <https://lexgraph.dev/ns/aiact#>
+            SELECT $this WHERE {
+                $this lg:estadoVerificacao ai:Revisto .
+                FILTER NOT EXISTS { $this lg:revistoPor ?r }
+            }
+        """ ] .
+lg:RemissaoExistenteShape a sh:NodeShape ;
+    sh:targetSubjectsOf lg:remetePara ;
+    sh:sparql [
+        sh:message "Remissão aponta para artigo inexistente: {?alvo}."@pt ;
+        sh:prefixes <https://lexgraph.dev/ns/shapes> ;
+        sh:select """
+            PREFIX lg: <https://lexgraph.dev/ns/core#>
+            SELECT $this ?alvo WHERE {
+                $this lg:remetePara ?alvo .
+                FILTER NOT EXISTS { ?alvo lg:temVersao ?v }
+            }
+        """ ] .
