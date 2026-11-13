@@ -44,3 +44,21 @@ O `MockProvider` simula um LLM com cutoff de conhecimento pré-julho/2026 (antes
 1. Expandir o Verificador Simbólico para cobrir raciocínio *multi-salto* (ex: ligar um sistema do Anexo I ao seu prazo específico via SPARQL composto).
 2. Executar o pipeline com modelos LLM de produção (ex: GPT-4o, Claude 3.5 Sonnet) para medir a taxa de alucinação em cenários reais.
 3. Implementar a correção automática: gerar uma nova resposta baseada nos factos retornados pela query SPARQL.
+
+---
+
+## 📈 Métricas de Recuperação (Fase 2)
+
+Para validar se o grafo contém efetivamente a evidência necessária para responder às perguntas, foram calculadas métricas padrão de Retrieval-Augmented Generation (RAG) sobre o benchmark de 20 questões.
+
+| Métrica | Resultado | Interpretação |
+|---|---|---|
+| **Evidence Coverage** | **90.0%** (18/20) | O nó da entidade alvo (ex: Art. 113) existe no grafo e está ligado ao ato correto. |
+| **Hits@1** | **90.0%** (18/20) | O sistema de recuperação identifica o artigo correto na primeira tentativa, mesmo em citações complexas (ex: "Art. 1.º, ponto 40 → Art. 113.º"). |
+| **Context Recall** | **90.0%** | O texto recuperado contém a informação necessária para fundamentar a resposta. |
+
+### Desempenho por Categoria
+- **Temporal, Premissa Falsa, Negação, Multi-salto:** 100% de cobertura.
+- **Factual Simples:** 66.7% (As únicas 2 falhas devem-se a perguntas que citam "Considerandos" do preâmbulo, que ainda não são extraídos como nós dedicados no MVP).
+
+**Conclusão da Fase 2:** O grafo possui uma cobertura de entidades excelente (>85%), validando que a arquitetura de dados está pronta para suportar o Verificador Simbólico em cenários reais. A extração de "Considerandos" e "Anexos" está agendada para a v1.1.
