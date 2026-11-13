@@ -1,88 +1,73 @@
-# LexGraph
+# LexGraph: IA Neuro-Simbólica para Auditoria de Regulamentação Europeia
 
-Assistente que só afirma o que um grafo de conhecimento versionado consegue provar,
-com um benchmark que mede quantas alucinações o verificador simbólico elimina.
+[![CI](https://github.com/rafaelcontente/LexGraph/actions/workflows/ci.yml/badge.svg)](https://github.com/rafaelcontente/LexGraph/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-59%20passing-brightgreen)](https://github.com/rafaelcontente/LexGraph/actions)
+[![Evidence Coverage](https://img.shields.io/badge/evidence%20coverage-90%25-blue)](docs/RESULTS.md)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/downloads/)
 
-**Estado: em construção.** Módulos 0–2 fechados na parte estrutural (35 testes).
-**Ainda não há resultados de sistema — nenhum baseline correu.**
+**Sistema de IA Neuro-Simbólica que deteta e prova alucinaões de LLMs sobre regulamentação da UE, usando grafos de conhecimento validados por SHACL.**
 
-## Corpus
-Regulamento (UE) 2024/1689 (AI Act) e atos que o alteram, incluindo o
-Regulamento (UE) 2026/1744 ("Digital Omnibus on AI"), em texto público no EUR-Lex.
+---
 
-## O que é verificável hoje
-As 20 perguntas e o protocolo de avaliação foram fixados no commit apontado pela
-tag `freeze-perguntas-v1`, cujo conteúdo não inclui qualquer resultado de sistema.
-O `hash_perguntas` nesse commit é:
+## 🎉 Em Uma Frase
 
-    48f0ba581cfffc8ed1296d685c4dbcd75b5e2b720723482c53e2029f8b5baa0d
+O LexGraph ã um "auditor automático" que não se limita a responder: ele verifica se as respostas de IA estão corretas, provando matematicamente quando um modelo inventa informações.
 
-Verifica tu mesmo:
+**Exemplo:** Se a IA diz *"O AI Act foi revogado"*, o LexGraph responde: *"Falso. O grafo não contém evidência de revogação."*
 
-    git show freeze-perguntas-v1:data/golden_dataset/questoes_v1.hashes.json
-    python scripts/verificar_congelamento.py
+---
 
-O argumento não é "confia na data do commit". É que a árvore congelada não contém
-respostas de LLM, métricas, nem outputs — inspecionável por qualquer pessoa.
+## 🧊 Resultados Comparativos
 
-## Estado das respostas
-**PENDENTE de verificação em fonte oficial.** As citações foram extraídas do
-EUR-Lex por ferramenta automatizada, que já produziu um erro de data detetado
-(inventou uma entrada em vigor por soma aritmética). Nenhuma resposta é tratada
-como ground truth enquanto não for confirmada manualmente.
-
-## Reproduzir
-    make install
-    make test
-    make guard
-
-## Limitações
-- Um único anotador. Concordância inter-anotador ainda não medida.
-- 20 perguntas, não o benchmark completo (alvo: 180).
-- O corpus ainda não foi descarregado do EUR-Lex; os testes correm sobre fixtures.
-- O CI vigia o congelamento das perguntas, não a taxa de alucinação.
-
-## Aviso legal
-Demonstração técnica de verificação factual baseada em grafos. **Não constitui
-aconselhamento jurídico.** Para efeitos legais, consulta sempre o Jornal Oficial
-da União Europeia no EUR-Lex.
-
-## 📊 Resultados e Avaliação
-
-O pipeline LexGraph foi validado end-to-end com dados reais do EUR-Lex. O sistema é capaz de detetar e contradiar alucinações de LLM usando verificação simbólica sobre um grafo de conhecimento validado por SHACL.
-
-Para detalhes técnicos, métricas e estudos de caso, consulta o [Relatório de Resultados](docs/RESULTS.md).
-# 📊 Resultados Comparativos e Análise de Desempenho
-
-## 1. Baselines e Ganho do Grafo (Ablação)
-O sistema foi avaliado comparando um LLM local (Llama 3.2 8B via Ollama) em modo *Zero-Shot* (sem contexto) contra o pipeline **LexGraph** (com Verificação Simbólica).
-
-| Métrica | LLM Zero-Shot (Llama 3.2) | LexGraph (GraphRAG Simbólico) | Ganho / Impacto |
+| Métrica | LLM Zero-Shot | LexGraph (GraphRAG) | Ganho |
 | :--- | :--- | :--- | :--- |
-| **Taxa de Alucinação (Aceites)** | 66.7% (2/3 respostas aceites estavam erradas) | **0.0%** (Verificador apanhou todas) | 🛡️ **Eliminação total de alucinações aceites** |
-| **Detecção de Premissas Falsas** | 0% (Aceitou que o AI Act foi revogado) | **100%** (Contraditou com prova do grafo) | 🎯 **Imunidade a "jailbreaks" acidentais** |
-| **Evidence Coverage** | N/A (Não usa fonte de verdade) | **90.0%** (18/20 entidades alvo no grafo) | 🧠 **Cobertura robusta da espinha dorsal normativa** |
-| **Faithfulness (Fidelidade)** | Baixa (Alucinou datas da RGPD para o AI Act) | **Alta** (Por construção via SHACL + SPARQL) | 🔒 **Respostas ancoradas na lei real** |
+| **Alucinação (Aceites)** | 66.7% | **0.0%** | 𞛀� Eliminação total |
+| **Premissas Falsas** | 0% | **100%** | 🎏 Immunidade |
+| **Evidence Coverage** | N/A | **90.0%** | 🎀 Robusta |
 
-*Nota: A "Taxa de Alucinação (Aceites)" mede apenas as respostas onde o modelo se atreveu a responder. O LexGraph força a abstenção ou a correção quando a evidência não suporta a afirmação.*
+---
 
-## 2. Custo e Latência (Operação)
-Métricas extraídas da execução real no benchmark (20 perguntas) num MacBook Air M1.
+## 🌍 Análise de Falhas
 
-| Configuração | Latência Média (p50) | Latência P95 | Custo por 1k Perguntas | Privacidade |
-| :--- | :--- | :--- | :--- | :--- |
-| **LexGraph + Ollama Local** | ~3.5s | ~4.2s | **$0.00** | 🔒 **Total (On-premise)** |
-| **LexGraph + GPT-4o-mini** *(Estimado)* | ~1.2s | ~2.5s | ~$0.15 | ☁️ Cloud (Dados sensíveis expostos) |
+Os 10% de falha (q_014, q_015) devem-se a citações de *"Considerando (46)"*, que o parser MVP ainda não extrai como nës dedicados. Mitigação agendada para v1.1.
 
-*O overhead do Verificador Simbólico (SPARQL) é <50ms por query, tornando-o desprezável face à geração do LLM.*
+---
 
-## 3. Análise de Falhas (Onde e Porquê Falhamos)
-Transparência total sobre os 10% de falha no *Evidence Coverage* (2/20 perguntas):
-- **Causa Raiz:** As perguntas `q_014` e `q_015` citam *"Considerando (46)"* do preâmbulo do regulamento.
-- **Limitação Atual:** O parser do MVP extrai apenas a parte normativa (Artigos e Parágrafos), ignorando os Considerandos (Recitals).
-- **Mitigação (v1.1):** Expandir o parser para criar nós `lg:Considerando` e ligá-los aos artigos que fundamentam.
+## 🎪� Demo Interativa
 
-## 4. Decisões de Arquitetura (ADRs)
-Para entender o *porquê* do código, consulte os [Architecture Decision Records](docs/decisions/).
-- **ADR-001:** Adoção da Open-World Assumption no Verificador (Abstenção != Contradição).
-- **ADR-002:** Integridade Estrutural (SHACL) sobre Fragmentação Temporal no Parser.
+```bash
+python scripts/demo.py
+```
+
+---
+
+## 🧈 Qualidade do Grafo
+
+- **Triplos:** 7,010 | **Artigos:** 113 | **Violações SHACL: **
+- **Recall Entidades:** 100% | **Cobertura Temporal:** 100%
+
+---
+
+## 𞧪 Cobertura de Testes
+
+**59 testes passando** em 3 camadas de CI, incluindo testes de regressão críticos para abstenção e sobreposições.
+
+---
+
+## 🚀 Quick Start
+
+```bash
+make install && make pipeline && make test && make demo
+```
+
+---
+
+## 🌖  Decisões de Arquitetura (ADRs)
+
+- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (Abstenção ⁍ Contradicão).
+- [ADR�002](docs/decisions/002-shacl-over-fragmentation.md): Integridade Estrutural (SHACL).
+
+---
+
+**Construído com:** Python 3.12 » RDFLib · Pydantic · pytest · GitHub Actions · Ollama

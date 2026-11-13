@@ -8,8 +8,8 @@ Num sistema de QA sobre grafos, é tentador assumir que "se não está no grafo,
 
 ## Decisão
 O Verificador Simbólico do LexGraph opera sob a **Open-World Assumption**. 
-- Se o LLM faz uma afirmação positiva e o grafo a contradiz -> `CONTRADITA`.
-- Se o LLM se abstém -> `NAO_VERIFICAVEL` (Nunca `CONTRADITA`).
+- Se o LLM faz uma afirmação positiva e o grafo a contradiz → `CONTRADITA`.
+- Se o LLM se abstém → `NAO_VERIFICAVEL` (Nunca `CONTRADITA`).
 
 ## Consequências
 - **Positivas:** O sistema não penaliza LLMs cautelosos. A métrica de "Abstenção Correta" torna-se fiável.

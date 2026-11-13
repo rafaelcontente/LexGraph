@@ -10,5 +10,5 @@ O parser inicial tentava extrair datas de vigência específicas de cada parágr
 Priorizar a **Integridade Estrutural**. O `vigenciaInicio` de uma Unidade Normativa representa a data da versão do documento (ex: 2024-08-01 para o AI Act original). As datas específicas de aplicação permanecem no campo `texto` e são extraídas dinamicamente pelo Verificador via SPARQL/Regex quando necessário.
 
 ## Consequências
-- **Positivas:** Grafo 100% SHACL-compliant, 0 duplicados,推理 (raciocínio) temporal robusto.
-- **Negativas:** Perde-se a ligação explícita `artigo -> temPrazo -> data` (agendado para v1.1 como nós `ai:Prazo`).
+- **Positivas:** Grafo 100% SHACL-compliant, 0 duplicados, raciocínio temporal robusto.
+- **Negativas:** Perde-se a ligação explícita `artigo → temPrazo → data` (agendado para v1.1 como nós `ai:Prazo`).

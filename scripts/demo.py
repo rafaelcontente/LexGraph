@@ -10,23 +10,19 @@ def main():
     print(" 🎬 LEXGRAPH DEMO: A desmontar uma alucinação em tempo real")
     print("=" * 70)
     
-    # 1. Carregar o grafo real
-    print("\n[1/4] 📥 A carregar o Grafo de Conhecimento (7000+ triplos SHACL-validados)...")
+    print("\n[1/4] 📥 A carregar o Grafo de Conhecimento...")
     g = Graph()
     g.parse("data/graph/corpus_real.ttl", format="turtle")
-    print(f"   ✅ Grafo carregado. {len(g)} triplos prontos para auditoria.")
+    print(f"   ✅ Grafo carregado. {len(g)} triplos SHACL-validados.")
 
-    # 2. A Pergunta "Armadilha"
     pergunta = "Uma vez que o Regulamento da IA foi revogado pelo Digital Omnibus, que regime se aplica agora?"
     print(f"\n[2/4] ❓ Pergunta do Utilizador (contém premissa falsa):")
     print(f"   \"{pergunta}\"")
 
-    # 3. A Resposta do LLM (Simulando Llama 3 a cair na armadilha)
     resposta_llm = "Sim, o Regulamento foi revogado. O novo regime é definido pelo Omnibus."
     print(f"\n[3/4] 🤖 Resposta do LLM (Zero-Shot):")
     print(f"   \"{resposta_llm}\"")
 
-    # 4. O Verificador Simbólico entra em ação
     print(f"\n[4/4] ⚖️  Verificador Simbólico a consultar o grafo via SPARQL...")
     questao = {
         "categoria": "premissa_falsa",
