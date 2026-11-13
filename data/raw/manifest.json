@@ -1,0 +1,56 @@
+{
+  "corpus_versao": "v1",
+  "gerado_em": "2026-11-13T00:19:43+00:00",
+  "licenca": "(c) Uniao Europeia. Reutilizacao nos termos da Decisao 2011/833/CE, com atribuicao de fonte ao EUR-Lex e indicacao de alteracoes. Confirmar condicoes exatas no aviso legal do EUR-Lex.",
+  "nota": "HTML bruto = snapshot imutavel. Determinismo mede-se de raw/ para corpus_v1.jsonl, nao de rede para raw/.",
+  "atos": [
+    {
+      "ato_id": "reg_2024_1689_original",
+      "celex": "32024R1689",
+      "url": "https://eur-lex.europa.eu/legal-content/PT/TXT/HTML/?uri=CELEX:32024R1689",
+      "descricao": "Regulamento (UE) 2024/1689 - texto original (2024)",
+      "ficheiro": "data/raw/reg_2024_1689_original.html",
+      "bytes": 1387474,
+      "sha256": "3594b9a3654a9668a333828b2646d6310a3453a5a34ea35664c1d0614d5c3a63",
+      "http_status": 200,
+      "origem": "descarregado",
+      "url_final": "https://eur-lex.europa.eu/legal-content/PT/TXT/HTML/?uri=CELEX:32024R1689",
+      "ocorrencias_artigo": 0,
+      "suspeito": true,
+      "descarregado_em": "2026-11-13T00:19:38+00:00",
+      "verificado_fonte_oficial": false
+    },
+    {
+      "ato_id": "reg_2024_1689_cons_20260727",
+      "celex": "02024R1689-20260727",
+      "url": "https://eur-lex.europa.eu/legal-content/PT/TXT/HTML/?uri=CELEX:02024R1689-20260727",
+      "descricao": "Texto consolidado apos o Digital Omnibus (2026-07-27)",
+      "ficheiro": "data/raw/reg_2024_1689_cons_20260727.html",
+      "bytes": 948339,
+      "sha256": "e893d53b897f6c05af73affa498b22c5a8a083b1b9ba0a615e390abae0c2e2b8",
+      "http_status": 200,
+      "origem": "descarregado",
+      "url_final": "https://eur-lex.europa.eu/legal-content/PT/TXT/HTML/?uri=CELEX:02024R1689-20260727",
+      "ocorrencias_artigo": 0,
+      "suspeito": true,
+      "descarregado_em": "2026-11-13T00:19:41+00:00",
+      "verificado_fonte_oficial": false
+    },
+    {
+      "ato_id": "reg_2026_1744",
+      "celex": "32026R1744",
+      "url": "https://eur-lex.europa.eu/legal-content/PT/TXT/HTML/?uri=OJ:L_202601744",
+      "descricao": "Regulamento (UE) 2026/1744 - Digital Omnibus on AI",
+      "ficheiro": "data/raw/reg_2026_1744.html",
+      "bytes": 392789,
+      "sha256": "fccc1ca02a5f68aeb7200d79fd2bdf1a9bcebd2301e52aabf2304b7ed37f517c",
+      "http_status": 200,
+      "origem": "descarregado",
+      "url_final": "https://eur-lex.europa.eu/legal-content/PT/TXT/HTML/?uri=OJ:L_202601744",
+      "ocorrencias_artigo": 0,
+      "suspeito": true,
+      "descarregado_em": "2026-11-13T00:19:43+00:00",
+      "verificado_fonte_oficial": false
+    }
+  ]
+}
