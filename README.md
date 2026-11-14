@@ -1,4 +1,4 @@
-# LexGraph: IA Neuro-Simbólica para Auditoria de Regulamentação Europeia
+# LexGraph: Neuro-Symbolic AI for European Regulatory Auditing
 
 [![CI](https://github.com/rafaelcontente/LexGraph/actions/workflows/ci.yml/badge.svg)](https://github.com/rafaelcontente/LexGraph/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-59%20passing-brightgreen)](https://github.com/rafaelcontente/LexGraph/actions)
@@ -6,31 +6,32 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/downloads/)
 
-**Sistema de IA Neuro-Simbólica que deteta e prova alucinações de LLMs sobre regulamentação da UE, usando grafos de conhecimento validados por SHACL.**
+**Neuro-Symbolic AI System that detects and proves LLMs' hallucinations about EU regulation, using knowledge graphs validated by SHACL.**
 
 ---
 
-## Em Uma Frase
+In a Sentence
 
-O LexGraph é um "auditor automático" que não se limita a responder: ele verifica se as respostas de IA estão corretas, provando matematicamente quando um modelo inventa informações.
+LexGraph is an "automatic auditor" that doesn't just respond: it verifies whether AI responses are correct, mathematically proving when a model fabricates information.
 
-**Exemplo:** Se a IA diz *"O AI Act foi revogado"*, o LexGraph responde: *"Falso."* O grafo não contém evidência de revogação."*
+**Example:** If the AI ​​says *"The AI ​​Act has been repealed"*, LexGraph responds: *"False."* The graph contains no evidence of repeal.*
 
 ---
 
-##  Resultados Comparativos
+## Comparative Results
 
-| Métrica | LLM Zero-Shot | LexGraph (GraphRAG) | Ganho |
+| Metric | LLM Zero-Shot | LexGraph (GraphRAG) | Gain |
+
 | :--- | :--- | :--- | :--- |
-| **Alucinação (Aceites)** | 66.7% | **0.0%** | Eliminação total |
-| **Premissas Falsas** | 0% | **100%** | Imunidade |
-| **Evidence Coverage** | N/A | **90.0%** |  Robusta |
+| **Hallucination (Accepted)** | 66.7% | **0.0%** | Total Elimination |
+| **False Premises** | 0% | **100%** | Immunity |
+| **Evidence Coverage** | N/A | **90.0%** | Robust |
 
 ---
 
-## Análise de Falhas
+Failure Analysis
 
-Os 10% de falha (q_014, q_015) devem-se a citações de *"Considerando (46)"*, que o parser MVP ainda não extrai como nós dedicados. Mitigação agendada para v1.1.
+The 10% failure rate (q_014, q_015) is due to citations of *"Considering (46)"*, which the MVP analyzer does not yet extract as dedicated nodes. Mitigation scheduled for v1.1.
 
 ---
 
@@ -42,16 +43,17 @@ python scripts/demo.py
 
 ---
 
-##  Qualidade do Grafo
+Graph Quality
 
-- **Triplos:** 7,010 | **Artigos:** 113 | **Violações SHACL: **
-- **Recall Entidades:** 100% | **Cobertura Temporal:** 100%
+- **Triples:** 7,010 | **Items:** 113 | **SHACL Violations:**
+
+- **Entity Recall:** 100% | **Temporal Coverage:** 100%
 
 ---
 
-##  Cobertura de Testes
+Test Coverage
 
-**59 testes passando** em 3 camadas de CI, incluindo testes de regressão críticos para a abstração e as sobreposições.
+**59 tests passing** across 3 layers of CI, including critical regression tests for abstraction and overlays.
 
 ---
 
@@ -63,11 +65,11 @@ make install && make pipeline && make test && make demo
 
 ---
 
-## Decisões de Arquitetura (ADRs)
+Architectural Decision Reports (ADRs)
 
-- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (Abstenção á Contradição).
-- [ADRÑ002](docs/decisions/002-shacl-over-fragmentation.md): Integridade Estrutural (SHACL).
+- [ADR-001](docs/decisions/001-open-world-verifier.md): Open-World Assumption (Abstention from Contradiction).
+- [ADRÑ002](docs/decisions/002-shacl-over-fragmentation.md): Structural Integrity (SHACL).
 
 ---
 
-**Construído com:** Python 3.12 · RDFLib · Pydantic · pytest · GitHub Actions · Ollama
+**Built with:** Python 3.12 · RDFLib · Pydantic · pytest · GitHub Shares · Ollama
