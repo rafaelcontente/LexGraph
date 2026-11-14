@@ -1,72 +1,91 @@
-# LexGraph: Resultados da Avaliação Neuro-Simbólica
+# LexGraph: Results of the Neuro-Symbolic Assessment
 
-Este documento resume os resultados da execução do pipeline completo do LexGraph, desde a extração de dados brutos do EUR-Lex até à verificação simbólica de alucinações de LLM.
+This document summarizes the results of running the complete LexGraph pipeline, from extracting raw EUR-Lex data to symbolically verifying LLM hallucinations.
 
-## 🏗️ Resumo da Arquitetura
+## 🏗️ Architecture Summary
 
-O sistema é composto por 5 módulos interligados:
-1. **Módulo 0 (Dados):** Parser resiliente que extrai HTML do EUR-Lex, deduplica e valida contra schema Pydantic (657 versões únicas de normas).
-2. **Módulo 1 (Grafo):** Ingestão em RDF com validação SHACL rigorosa, garantindo integridade estrutural e proveniência (`fonteOficial`). Total: ~7000 triplos.
-3. **Módulo 2 (Benchmark):** Golden dataset de 20 perguntas com `hash_perguntas` criptograficamente congelado e citações verificadas manualmente no EUR-Lex.
-4. **Módulo 3 (Baselines):** Pipeline de avaliação com providers (Mock/Real) e heurísticas iniciais, protegido por portões de partição (partição `teste` selada).
-5. **Módulo 5 (Verificador Simbólico):** Decomposição e validação SPARQL que transforma "resposta errada" em "alucinação contradiada pelo grafo com prova".
+The system is composed of 5 interconnected modules:
+1. **Module 0 (Data):** Resilient parser that extracts HTML from EUR-Lex, deduplicates, and validates against the Pydantic schema (657 unique pattern versions).
+2. **Module 1 (Graph):** Ingestion into RDF with rigorous SHACL validation, guaranteeing structural integrity and provenance (`officialSource`). Total: ~7000 triples.
+3. **Module 2 (Benchmark):** Gold dataset of 20 questions with cryptographically frozen `question_hash` and manually verified citations in EUR-Lex.
 
-## 📊 Métricas de Desempenho (Baseline Mock)
+4. **Module 3 (Baselines):** Evaluation pipeline with providers (Mock/Real) and initial heuristics, protected by partition gates (sealed `test` partition).
 
-O `MockProvider` simula um LLM com cutoff de conhecimento pré-julho/2026 (antes do Digital Omnibus). Ao ser questionado sobre prazos pós-2026, ele alucina consistentemente.
+5. **Module 5 (Symbolic Verifier):** SPARQL decomposition and validation that transforms "wrong answer" into "hallucination contradicted by the graph with proof".
 
-| Métrica | Valor |
+
+
+## 📊 Performance Metrics (Baseline Mock)
+
+`MockProvider` simulates an LLM with a pre-July 2026 knowledge cutoff (before the Digital Omnibus). When questioned about post-2026 timelines, it consistently hallucinates.
+
+| Metric | Value |
+
 |---|---|
-| Total de Questões | 20 |
-| Avaliáveis Heuristicamente | 20 (100%) |
-| **Contraditas pelo Grafo** | **18 (90%)** |
-| Não Verificáveis (MVP) | 2 (10%) |
-| Taxa de Alucinação (Aceites) | 100% |
 
-> **Nota:** As 18 contradições representam casos onde o avaliador heurístico inicial classificaria apenas como "errada", mas o Verificador Simbólico forneceu a **prova matemática** da alucinação consultando o grafo real.
+| Total Questions | 20 |
 
-## 🔍 Estudo de Caso: A Prova da Alucinação (q_020)
+| Heuristically Assessable | 20 (100%) |
 
-**Pergunta:** *"Uma vez que o Regulamento da IA foi revogado pelo Digital Omnibus, que regime se aplica agora aos sistemas de alto risco?"*  
-**Premissa Declarada:** *"O Regulamento da IA foi revogado pelo Digital Omnibus."*
+| **Contradicted by the Graph** | **18 (90%)** |
 
-### Resposta do LLM (Mock)
-> "Sim, o Regulamento foi revogado."
+| Not Verifiable (MVP) | 2 (10%) |
 
-### Julgamento do Verificador Simbólico
-- **Status:** `CONTRADITA`
-- **Motivo:** "Premissa contém 'revogado' que não foi encontrado no ato 32024R1689."
-- **Evidência do Grafo:** "Termo 'revogado' ausente no grafo"
+| Hallucination Rate (Accepted) | 100% |
 
-**Conclusão:** O sistema não se limitou a dizer que a resposta estava errada. Ele consultou o texto oficial do Regulamento (UE) 2024/1689 no grafo RDF, confirmou a ausência do termo "revogado" e contradiu a premissa falsa com base na fonte primária.
+> **Note:** The 18 contradictions represent cases where the initial heuristic evaluator would classify it simply as "wrong," but the Symbolic Verifier provided the **mathematical proof** of the hallucination by consulting the actual graph.
 
-## 🚀 Próximos Passos
-1. Expandir o Verificador Simbólico para cobrir raciocínio *multi-salto* (ex: ligar um sistema do Anexo I ao seu prazo específico via SPARQL composto).
-2. Executar o pipeline com modelos LLM de produção (ex: GPT-4o, Claude 3.5 Sonnet) para medir a taxa de alucinação em cenários reais.
-3. Implementar a correção automática: gerar uma nova resposta baseada nos factos retornados pela query SPARQL.
 
+
+## 🔍 Case Study: The Hallucination Proof (q_020)
+
+**Question:** *"Since the AI ​​Regulation was revoked by the Digital Omnibus, what regime now applies to high-risk systems?"*
+**Stated Premise:** *"The AI ​​Regulation was revoked by the Digital Omnibus."*
+
+### LLM Response (Mock)
+> "Yes, the Regulation has been revoked."
+
+### Symbolic Verifier Judgment
+- **Status:** `CONTRADICTED`
+- **Reason:** "Premise contains 'revoked' which was not found in Act 32024R1689."
+
+- **Graph Evidence:** "Term 'revoked' missing in the graph"
+
+**Conclusion:** The system did not simply state that the response was incorrect. It consulted the official text of Regulation (EU) 2024/1689 in the RDF graph, confirmed the absence of the term "revoked," and contradicted the false premise based on the primary source.
+
+
+
+## 🚀 Next Steps
+1. Expand the Symbolic Verifier to cover multi-hop reasoning (e.g., linking an Annex I system to its specific deadline via composite SPARQL).
+2. Run the pipeline with production LLM models (e.g., GPT-40, Claude 3.5 Sonnet) to measure the hallucination rate in real-world scenarios.
+
+3. Implement automatic correction: generate a new response based on the facts returned by the SPARQL query.
 ---
 
-## 📈 Métricas de Recuperação (Fase 2)
+## 📈 Retrieval Metrics (Phase 2)
 
-Para validar se o grafo contém efetivamente a evidência necessária para responder às perguntas, foram calculadas métricas padrão de Retrieval-Augmented Generation (RAG) sobre o benchmark de 20 questões.
+To validate whether the graph contains the evidence needed to answer the questions, we calculated standard Retrieval-Augmented Generation (RAG) metrics on the 20-question benchmark.
 
-| Métrica | Resultado | Interpretação |
+| Metric | Result | Interpretation |
 |---|---|---|
-| **Evidence Coverage** | **90.0%** (18/20) | O nó da entidade alvo (ex: Art. 113) existe no grafo e está ligado ao ato correto. |
-| **Hits@1** | **90.0%** (18/20) | O sistema de recuperação identifica o artigo correto na primeira tentativa, mesmo em citações complexas (ex: "Art. 1.º, ponto 40 → Art. 113.º"). |
-| **Context Recall** | **90.0%** | O texto recuperado contém a informação necessária para fundamentar a resposta. |
+| **Evidence Coverage** | **90.0%** (18/20) | The target entity node (e.g., Art. 113) exists in the graph and is linked to the correct act. |
+| **Hits@1** | **90.0%** (18/20) | The retrieval system identifies the correct article on the first attempt, even in complex citations (e.g., "Art. 1º, inciso 40 → Art. 113"). |
+| **Context Recall** | **90.0%** | The retrieved text contains the necessary information to support the answer.
 
-### Desempenho por Categoria
-- **Temporal, Premissa Falsa, Negação, Multi-salto:** 100% de cobertura.
-- **Factual Simples:** 66.7% (As únicas 2 falhas devem-se a perguntas que citam "Considerandos" do preâmbulo, que ainda não são extraídos como nós dedicados no MVP).
 
-**Conclusão da Fase 2:** O grafo possui uma cobertura de entidades excelente (>85%), validando que a arquitetura de dados está pronta para suportar o Verificador Simbólico em cenários reais. A extração de "Considerandos" e "Anexos" está agendada para a v1.1.
+
+Performance by Category
+- **Temporal, False Premise, Negation, Multi-hop:** 100% coverage.
+
+- **Simple Factual:** 66.7% (The only 2 failures are due to questions that quote "Considerations" from the preamble, which are not yet extracted as dedicated nodes in the MVP).
+
+**Phase 2 Conclusion:** The graph has excellent entity coverage (>85%), validating that the data architecture is ready to support the Symbolic Verifier in real-world scenarios. Extraction of "Considerations" and "Attachments" is scheduled for v1.1.
 
 ---
 
-## 🔮 Trabalho Futuro (v1.1)
-Embora o MVP atinja 90% de cobertura, as seguintes melhorias estão agendadas para elevar a robustez:
-1. **Extração de Considerandos (Recitals):** Adaptar o parser para criar nós `lg:Considerando` e ligá-los aos artigos que fundamentam, fechando os 10% de gap no *Evidence Coverage*.
-2. **Entidades de Prazo Dedicadas:** Extrair datas do texto e criar nós `ai:Prazo` com relações explícitas (`lg:temPrazo`), em vez de depender apenas da busca textual no verificador.
-3. **Correção Automática (RAG):** Fazer o sistema gerar uma nova resposta corrigida com base nos factos retornados pela query SPARQL, em vez de apenas classificar o erro.
+## 🔮 Future Work (v1.1)
+Although the MVP achieves 90% coverage, the following improvements are planned to increase robustness:
+1. **Extraction of Recitals:** Adapt the parser to create `lg:Recitals` nodes and link them to the supporting articles, closing the 10% gap in *Evidence Coverage*.
+2. **Dedicated Deadline Entities:** Extract dates from the text and create `ai:Deadline` nodes with explicit relationships (`lg:hasDeadline`), instead of relying solely on text search in the checker.
+
+3. **Automatic Correction (RAG):** Have the system generate a new corrected response based on the facts returned by the SPARQL query, instead of just classifying the error.
