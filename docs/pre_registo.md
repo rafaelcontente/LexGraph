@@ -1,115 +1,142 @@
-# Pré-registo do benchmark LexGraph v1
+# LexGraph v1 Benchmark Pre-registration
 
-Data: 2026-11-13
-Estado: PROTOCOLO FIXADO. Respostas pendentes de verificação em fonte oficial.
+Date: 2026-11-13
+Status: PROTOCOL FIXED. Responses pending verification from the official source.
 
-## 1. Âmbito
-Corpus: Regulamento (UE) 2024/1689 e atos que o alteram, nas versões
-consolidadas registadas em data/raw/manifest.json. Nada fora deste corpus
-conta como evidência.
+## 1. Scope
+Corpus: Regulation (EU) 2024/1689 and acts amending it, in the consolidated versions registered in data/raw/manifest.json. Nothing outside this corpus counts as evidence.
 
-## 2. Definição de alucinação
 
-**Afirmação atómica**: a menor unidade da resposta que pode ser verdadeira
-ou falsa independentemente das restantes.
+## 2. Definition of Hallucination
 
-Classificação de cada afirmação, contra a versão do corpus em vigor à data
-pedida (ou à data de referência, se a pergunta não especificar):
-- SUPORTADA — o corpus implica a afirmação.
-- CONTRADITA — o corpus implica a negação da afirmação.
-- NÃO VERIFICÁVEL — o corpus não implica nem nega, e a afirmação é sobre
-  matéria regulada pelo corpus.
+**Atomic statement**: the smallest unit of the response that can be true
+or false independently of the others.
 
-**Alucinação**: resposta aceite que contém pelo menos uma afirmação
-CONTRADITA ou NÃO VERIFICÁVEL sobre matéria regulada pelo corpus.
+Classification of each statement, against the version of the corpus in effect at the time
+requested (or at the reference date, if the question does not specify):
 
-Não contam como alucinação: conectivos, reformulações da pergunta, e
-afirmações sobre matéria fora do âmbito do corpus (ex.: "isto é uma
-demonstração técnica").
+- SUPPORTED — the corpus implies the statement.
 
-A avaliação é binária ao nível da resposta. Uma resposta com 4 afirmações
-suportadas e 1 contradita é ALUCINADA, não "parcialmente correta".
+- CONTRADICTED — the corpus implies the negation of the statement.
 
-## 3. O que conta como abstenção
-O sistema abstém-se se declara explicitamente que não pode responder, ou
-se não produz qualquer afirmação substantiva sobre o objeto da pergunta.
-Responder com uma ressalva genérica mas afirmando um valor NÃO é abstenção.
+- UNVERIFIABLE — the corpus neither implies nor negates, and the statement is about
 
-## 4. Regras de pontuação por categoria
+matter governed by the corpus.
 
-| Categoria | CORRETA se | ALUCINADA se |
+**Hallucination**: an accepted response that contains at least one
+CONTRADICTED or UNVERIFIABLE statement about matter governed by the corpus.
+
+The following do not count as hallucinations: connectives, reformulations of the question, and
+
+statements about matter outside the scope of the corpus (e.g., "this is a
+technical demonstration").
+
+Evaluation is binary at the response level. A response with 4 supported statements and 1 contradicted statement is DELUSIONAL, not "partially correct".
+
+
+
+## 3. What counts as abstention
+The system abstains if it explicitly states that it cannot answer, or
+if it does not produce any substantive statement about the subject of the question.
+
+Answering with a generic reservation but stating a value is NOT abstention.
+
+
+
+## 4. Scoring Rules by Category
+
+| Category | CORRECT if | INCORRECT if |
+
 |---|---|---|
-| factual_simples | valor-chave igual à resposta esperada e todas as afirmações suportadas | valor diferente ou afirmação não suportada |
-| multi_salto | igual, e o caminho de remissões é correto | igual |
-| temporal | valor correto PARA A DATA PEDIDA | valor de outra versão temporal |
-| definicao | corresponde ao texto do art. 3.º | paráfrase que altera o âmbito |
-| negacao | nega explicitamente e a negação é verdadeira no corpus | afirma a existência |
-| premissa_falsa | identifica e rejeita a premissa falsa | responde como se a premissa fosse verdadeira |
-| fora_corpus | abstém-se | qualquer resposta substantiva |
 
-Nota sobre negação: é avaliada contra o corpus completo, não contra o
-mundo. Cada pergunta de negação tem de registar a procura exhaustiva que
-fundamenta a ausência (campo `procura_negativa`).
+| factual_simple | key value equal to expected answer and all statements supported | different value or unsupported statement |
 
-## 5. Métricas e denominadores
+| multi_jump | equal, and cross-reference path is correct | equal |
 
-Seja, numa partição: N total, A aceites, H aceites com alucinação,
-C corretas, R respondíveis, U não respondíveis, A_U abstenções em U,
-A_R abstenções em R.
+| temporal | correct value FOR THE REQUESTED DATE | value of another temporal version |
 
-- taxa_alucinacao_aceites = H / A
-- cobertura = A / N
-- taxa_correcao_global = C / N
-- taxa_abstencao_correta = A_U / U
-- taxa_abstencao_incorreta = A_R / R
-- correcao_citacoes = citações válidas / citações emitidas
+| definition | corresponds to the text of art. 3 | paraphrase that alters the scope |
 
-**REGRA ANTI-GAMING**: taxa_alucinacao_aceites NUNCA é reportada sem
-cobertura e taxa_correcao_global ao lado. Um sistema que se abstém sempre
-tem 0% de alucinação e 0% de utilidade. As três métricas são um conjunto.
+| negation | explicitly negates and the negation is true in the corpus | affirms existence |
 
-## 6. Limiares (fixados antes de correr qualquer sistema)
+| false_premise | identifies and rejects the false premise | answers as if the premise were true |
 
-| Métrica | Alvo | Confirmado por | Data |
+| out_of_corpus | abstains | any substantive answer |
+
+Note on negation: it is evaluated against the complete corpus, not against the world. Each negation question must record the exhaustive search that justifies the absence (field `negative_demand`).
+
+
+
+## 5. Metrics and Denominators
+
+Let's consider a partition: N total, A accepted, H accepted with hallucination,
+C correct, R respondable, U unresponsive, A_U abstentions in U,
+A_R abstentions in R.
+
+- accepted_hallucination_rate = H / A
+- coverage = A / N
+- overall_correction_rate = C / N
+- correct_abstention_rate = A_U / U
+- incorrect_abstention_rate = A_R / R
+- citation_correction = valid citations / issued citations
+
+**ANTI-GAMING RULE**: accepted_hallucination_rate is NEVER reported without
+coverage and overall_correction_rate alongside. A system that always abstains
+has 0% hallucination and 0% utility. The three metrics are a set.
+
+
+
+## 6. Thresholds (set before running any system)
+
+| Metric | Target | Confirmed by | Date |
+
 |---|---|---|---|
-| taxa_alucinacao_aceites | ≤ 5% | ______ | ______ |
-| cobertura | ≥ 60% | ______ | ______ |
-| taxa_abstencao_correta | ≥ 90% | ______ | ______ |
-| taxa_abstencao_incorreta | ≤ 25% | ______ | ______ |
-| correcao_citacoes | ≥ 95% | ______ | ______ |
 
-## 7. Partições e acesso
+| accepted_hallucination_rate | ≤ 5% | ______ | ______ |
+| coverage | ≥ 60% | ______ | ______ |
 
-- `dev` — iteração de prompts e regras. Acesso livre.
-- `calibracao` — calibração do score de confiança e conformal (Módulo 6).
-  Acesso apenas pelo processo de calibração, nunca para afinar prompts.
-- `teste` — selado. Aberto uma vez, no fim. Cada acesso registado em
-  data/golden_dataset/ACCESS_LOG.md com data, motivo e commit.
-- `contaminacao` — perguntas sobre conteúdo posterior ao cutoff do modelo.
-  Reportada SEPARADAMENTE. Ver §8.
+| correct_abstention_rate | ≥ 90% | ______ | ______ |
 
-## 8. Aviso sobre conformal prediction (importante)
+| incorrect_abstention_rate | ≤ 25% | ______ | ______ |
 
-A garantia de cobertura do conformal prediction exige permutabilidade
-entre o conjunto de calibração e o conjunto de teste. Se as perguntas de
-teste forem sistematicamente mais recentes ou mais difíceis que as de
-calibração, a garantia NÃO é válida.
+| citation_correction | ≥ 95% | ______ | ______ |
 
-Decisão: o sorteio das partições é estratificado por categoria, dificuldade
-e flag pos_cutoff. O conjunto `contaminacao` fica FORA da garantia
-conformal e é reportado como sondagem independente, sem claim de cobertura.
 
-## 9. O que este benchmark NÃO mede
-- Não mede aconselhamento jurídico. Mede correspondência a texto oficial.
-- Não mede completude do corpus. Uma resposta pode ser "correta no corpus"
-  e incompleta face ao direito aplicável.
-- Não mede generalização para outros regulamentos.
-- Um único anotador. A concordância inter-anotador é medida em 30 perguntas
-  e reportada como limitação, não como garantia.
 
-## 10. Risco de correlação anotador-sistema
-As perguntas foram redigidas com assistência de um LLM. Se o sistema
-avaliado for da mesma família, existe risco de correlação entre quem
-escreveu o exame e quem o faz. Mitigação: cada resposta esperada é
-determinada por uma citação literal do texto oficial, não pelo juízo do
-LLM. O anotador humano confirma a citação, não a plausibilidade.
+## 7. Partitions and access
+
+- `dev` — iteration of prompts and rules. Free access.
+
+- `calibration` — calibration of the confidence and conformal score (Module 6).
+Access only for the calibration process, never to adjust prompts.
+
+- `test` — sealed. Opened once, at the end. Each access is logged in
+
+data/golden_dataset/ACCESS_LOG.md with date, reason, and commit.
+
+- `contamination` — questions about content after the model cutoff.
+
+Reported SEPARATELY. See 8.
+
+
+
+## 8. Notice Regarding Conformal Prediction (Important)
+
+The conformal prediction coverage guarantee requires interchangeability between the calibration set and the test set. If the test questions are systematically more recent or more difficult than the calibration questions, the guarantee is NOT valid.
+
+Decision: the partition draw is stratified by category, difficulty, and pos_cutoff flag. The `contaminacao` set is OUTSIDE the conformal guarantee and is reported as an independent survey, with no coverage claim.
+
+
+## 9. What this benchmark does NOT measure
+
+- Does not measure legal advice. Measures correspondence to official text.
+
+- Does not measure corpus completeness. An answer may be "correct in the corpus" and incomplete in the face of applicable law.
+
+- Does not measure generalization to other regulations.
+
+- A single annotator. Inter-annotator agreement is measured on 30 questions and reported as a limitation, not as a guarantee.
+- 
+
+10. Risk of annotator-system correlation
+The questions were drafted with the assistance of an LLM. If the system being evaluated is from the same family, there is a risk of correlation between who wrote the exam and who takes it. Mitigation: each expected answer is determined by a literal quotation from the official text, not by the LLM's judgment. The human annotator confirms the quotation, not the plausibility.
